@@ -476,7 +476,7 @@
 		 *     function(device)
 		 *     {
 		 *       console.log('BLE device connected.');
-		 *       // TODO: Read services here.
+		 *       // Read services here.
 		 *     },
 		 *     function(errorCode)
 		 *     {
@@ -532,7 +532,7 @@
 		 *     function(device)
 		 *     {
 		 *       console.log('BLE Services available.');
-		 *       // TODO: Read/write/enable notifications here.
+		 *       // Read/write/enable notifications here.
 		 *     },
 		 *     function(errorCode)
 		 *     {
