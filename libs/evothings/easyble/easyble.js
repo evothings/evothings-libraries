@@ -452,6 +452,8 @@
 		 * Match device name.
 		 * @param name The name to match.
 		 * @return true if device has the given name, false if not.
+		 * @public
+		 * @instance
 		 * @example
 		 *   device.hasName('MyBLEDevice');
 		 */
@@ -890,7 +892,7 @@
 		 * @public
 		 * @instance
 		 * @example
-		 *  device.disableNotification(
+		 *  device.disableServiceNotification(
 		 *    serviceUUID,
 		 *    characteristicUUID,
 		 *    function()
