@@ -412,13 +412,14 @@
 		var advertisementData = device.advertisementData;
 		if (advertisementData)
 		{
-			if (advertisementData.kCBAdvDataServiceUUIDs)
+			var serviceUUIDs = advertisementData.kCBAdvDataServiceUUIDs;
+			if (serviceUUIDs)
 			{
-				for (var i in advertisementData)
+				for (var i in serviceUUIDs)
 				{
 					for (var j in serviceFilter)
 					{
-						if (advertisementData[i].toLowerCase() ==
+						if (serviceUUIDs[i].toLowerCase() ==
 							serviceFilter[j].toLowerCase())
 						{
 							return true;
