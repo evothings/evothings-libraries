@@ -414,11 +414,12 @@
 		{
 			if (advertisementData.kCBAdvDataServiceUUIDs)
 			{
-				for (var i in advertisementData)
+				var advertisedServices = advertisementData.kCBAdvDataServiceUUIDs;
+				for (var i=0; i < advertisedServices.length; i++)
 				{
-					for (var j in serviceFilter)
+					for (var j=0; j < serviceFilter.length; j++)
 					{
-						if (advertisementData[i].toLowerCase() ==
+						if (advertisedServices[i].toLowerCase() ==
 							serviceFilter[j].toLowerCase())
 						{
 							return true;
