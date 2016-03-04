@@ -145,6 +145,56 @@ evothings.eddystone.stopScan = function()
 	isScanning = false;
 }
 
+/**
+ * @description Calculate the accuracy (distance in meters) of the beacon.
+ * <p>The beacon distance calculation uses txPower at 1 meters, but the
+ * Eddystone protocol reports the value at 0 meters. 41dBm is the signal
+ * loss that occurs over 1 meter, this value is subtracted by default
+ * from the reported txPower. You can tune the calculation by adding
+ * or subtracting to param txPower.<p>
+ * <p>Note that the returned distance value is not accurate, and that
+ * it fluctuates over time. Sampling/filtering over time is recommended
+ * to obtain a stable value.<p>
+ * @public
+ * @param txPower The txPower of the beacon.
+ * @param rssi The RSSI of the beacon, subtract or add to this value to
+ * tune the dBm strength. 41dBm is subtracted from this value in the
+ * distance algorithm used by calculateAccuracy.
+ * @return Distance in meters, or null if unable to compute distance
+ * (occurs for example when txPower or rssi is undefined).
+ * @example
+ *   // Note that beacon.txPower and beacon.rssi many be undefined,
+ *   // in which case calculateAccuracy returns null. This happens
+ *   // before txPower and rssi have been reported by the beacon.
+ *   var distance = evothings.eddystone.calculateAccuracy(
+ *       beacon.txPower, beacon.rssi);
+ */
+evothings.eddystone.calculateAccuracy = function(txPower, rssi)
+{
+	if (!rssi || rssi >= 0 || !txPower)
+	{
+		return null
+	}
+
+	// Algorithm
+	// http://developer.radiusnetworks.com/2014/12/04/fundamentals-of-beacon-ranging.html
+	// http://stackoverflow.com/questions/21338031/radius-networks-ibeacon-ranging-fluctuation
+
+	// The beacon distance formula uses txPower at 1 meters, but the Eddystone
+	// protocol reports the value at 0 meters. 41dBm is the signal loss that
+	// occurs over 1 meter, so we subtract that from the reported txPower.
+	var ratio = rssi * 1.0 / (txPower - 41)
+	if (ratio < 1.0)
+	{
+		return Math.pow(ratio, 10)
+	}
+	else
+	{
+		var accuracy = (0.89976) * Math.pow(ratio, 7.7095) + 0.111
+		return accuracy
+	}
+}
+
 // Return true on frame type recognition, false otherwise.
 function parseFrameUID(device, data, win, fail)
 {
