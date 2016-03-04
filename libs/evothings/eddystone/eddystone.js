@@ -31,9 +31,9 @@ var isScanning = false;
  * @description Starts scanning for Eddystone devices.
  * <p>Found devices and errors will be reported to the supplied callbacks.</p>
  * <p>Will keep scanning indefinitely until you call stopScan().</p>
- * To conserve energy, call stopScan() as soon as you've found the device
- * you're looking  for.
- * <p>Calling this function while scanning is in progress will fail.</p>
+ * <p>To conserve energy, call stopScan() as soon as you've found the device
+ * you're looking for.</p>
+ * <p>Calling startScan() while scanning is in progress will produce an error.</p>
  *
  * @param {evothings.eddystone.scanCallback} - Success function called
  * when a beacon is found.
