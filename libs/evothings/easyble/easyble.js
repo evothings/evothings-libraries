@@ -1160,15 +1160,8 @@
 		evothings.ble.readDescriptor(
 			device.deviceHandle,
 			descriptor.handle,
-			value,
-			function()
-			{
-				success();
-			},
-			function(errorCode)
-			{
-				fail(errorCode);
-			});
+			success,
+			fail);
 	};
 
 	/**
