@@ -71,6 +71,9 @@ evothings.eddystone.startScan = function(scanCallback, failCallback)
 	// Therefore we can store data in it and expect to have the data still be there
 	// on the next callback with the same device.
 	evothings.easyble.startScan(
+		// Scan for Eddystone Service UUID.
+		// This enables background scanning on iOS (and Android).
+		['0000FEAA-0000-1000-8000-00805F9B34FB'],
 		function(device)
 		{
 			// A device might be an Eddystone if it has advertisementData...
