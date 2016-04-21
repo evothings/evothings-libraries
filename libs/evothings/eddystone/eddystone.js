@@ -197,6 +197,45 @@ evothings.eddystone.calculateAccuracy = function(txPower, rssi)
 	}
 }
 
+/**
+ * Create a low-pass filter.
+ * @param cutOff The filter cut off value.
+ * @return Object with two functions: filter(value), value()
+ * @example
+ *   // Create filter with cut off 0.8
+ *   var lowpass = evothings.eddystone.createLowPassFilter(0.8)
+ *   // Filter value (returns current filter value)
+ *   distance = lowpass.filter(distance)
+ *   // Get current value
+ *   distance = lowpass.value()
+ */
+evothings.eddystone.createLowPassFilter = function(cutOff, state)
+{
+	// Filter cut off.
+	if (undefined === cutOff) { cutOff = 0.8 }
+
+	// Current value of the filter.
+	if (undefined === state) { state = 0.0 }
+
+	// Return object with filter functions.
+	return {
+		// This function will filter the given value.
+		// Returns the current value of the filter.
+		filter: function(value)
+		{
+			state =
+				(value * (1.0 - cutOff)) +
+				(state * cutOff)
+			return state
+		},
+		// This function returns the current value of the filter.
+		value: function()
+		{
+			return state
+		}
+	}
+}
+
 // Return true on frame type recognition, false otherwise.
 function parseFrameUID(device, data, win, fail)
 {
