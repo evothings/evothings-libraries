@@ -466,7 +466,7 @@
 		}
 
 		/**
-		 * @description Stop scanning for physical devices and call {@link evothings.iotsensor.instance#statusCallback|statusCallback} with {@link evothings.iotsensor.ble.status|IOTSENSOR_NOT_FOUND} message.
+		 * @description Stop scanning for physical devices and call {@link evothings.iotsensor.instance#errorCallback|errorCallback} with {@link evothings.iotsensor.ble.error|IOTSENSOR_NOT_FOUND} message.
 		 * @instance
 		 * @example
 		 * iotsensor.stopScanningForDevices();
@@ -474,7 +474,7 @@
 		 */
 		instance.stopScanningForDevices = function()
 		{
-			instance.callStatusCallback(iotsensor.status.IOTSENSOR_NOT_FOUND);
+			instance.callErrorCallback(iotsensor.error.IOTSENSOR_NOT_FOUND);
 			evothings.easyble.stopScan();
 			return instance;
 		}
