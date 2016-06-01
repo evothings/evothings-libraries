@@ -8,13 +8,17 @@ mkdir $OUT
 
 cd libs
 printf "[\n" >> $LIST
+FIRST=true
 for D in *; do
   if [ -d "${D}" ]; then
     cd $D
     if [ -f "evothings.json" ]; then
       echo "Collecting evothings.json ..."
       cat evothings.json >> $LIST
-      printf ",\n" >> $LIST
+      if [ "$FIRST" = false ] ; then
+        printf ",\n" >> $LIST
+      fi
+      FIRST=false
       echo "Making zip for ${D} ..."
       zip -r $OUT/$D.zip *
     fi
