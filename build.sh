@@ -13,6 +13,8 @@ for D in *; do
   if [ -d "${D}" ]; then
     cd $D
     if [ -f "evothings.json" ]; then
+      echo "Copying $D to $OUT ..."
+      cp -a ../$D $OUT/
       echo "Collecting evothings.json ..."
       cat evothings.json >> $LIST
       if [ "$FIRST" = false ] ; then
