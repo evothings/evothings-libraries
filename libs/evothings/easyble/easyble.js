@@ -153,33 +153,72 @@
 
 	/**
 	 * Start scanning for devices.
+	 * @param {array} serviceUUIDs - Array with service UUID strings (optional).
+	 * On iOS multiple UUIDs are scanned for using logical OR operator,
+	 * any UUID that matches any of the UUIDs adverticed by the device
+	 * will count as a match. On Android, multiple UUIDs are scanned for
+	 * using AND logic, the device must advertise all of the given UUIDs
+	 * to produce a match. (The matching logic will be unified in future
+	 * versions of the plugin.) When providing one service UUID, behaviour
+	 * is the same on Android and iOS. Learning out this parameter or
+	 * setting it to null, will scan for all devices, regardless of
+	 * advertised services.
 	 * @param {evothings.easyble.scanCallback} - Success function called when a
 	 * device is found.
 	 * Format: success({@link evothings.easyble.EasyBLEDevice}).
 	 * @param {evothings.easyble.failCallback} fail - Error callback: fail(error).
 	 * @public
 	 * @example
+	 *   // Scan for all services.
 	 *   evothings.easyble.startScan(
-	 *     function(device)
-	 *     {
-	 *       console.log('BLE Found device: ' + device.name);
-	 *     },
-	 *     function(error)
-	 *     {
-	 *       console.log('BLE Scan error: ' + error);
-	 *     });
+	 *       function(device)
+	 *       {
+	 *           console.log('Found device named: ' + device.name);
+	 *       },
+	 *       function(errorCode)
+	 *       {
+	 *           console.log('startScan error: ' + errorCode);
+	 *       }
+	 *   );
+	 *
+	 *   // Scan for specific service.
+	 *   evothings.easyble.startScan(
+	 *       // Eddystone service UUID.
+	 *       ['0000FEAA-0000-1000-8000-00805F9B34FB'],
+	 *       function(device)
+	 *       {
+	 *           console.log('Found device named: ' + device.name);
+	 *       },
+	 *       function(errorCode)
+	 *       {
+	 *           console.log('startScan error: ' + errorCode);
+	 *       }
+	 *   );
 	 */
-	evothings.easyble.startScan = function(success, fail)
+	evothings.easyble.startScan = function(serviceUUIDs, success, fail)
 	{
 		evothings.easyble.stopScan();
+
 		internal.knownDevices = {};
-		evothings.ble.startScan(function(device)
+
+		if ('function' == typeof uuids)
+		{
+			// No Service UUIDs specified.
+			evothings.ble.startScan(onDeviceFound, onError);
+		}
+		else
+		{
+			evothings.ble.startScan(serviceUUIDs, onDeviceFound, onError);
+		}
+
+		function onDeviceFound(device)
 		{
 			// Ensure we have advertisementData.
 			internal.ensureAdvertisementData(device);
 
 			// Check if the device matches the filter, if we have a filter.
-			if(!internal.deviceMatchesServiceFilter(device)) {
+			if (!internal.deviceMatchesServiceFilter(device))
+			{
 				return;
 			}
 
@@ -207,11 +246,12 @@
 
 			// Call callback function with device info.
 			success(device);
-		},
-		function(errorCode)
+		}
+
+		function onError(errorCode)
 		{
 			fail(errorCode);
-		});
+		}
 	};
 
 	/**

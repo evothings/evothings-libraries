@@ -71,6 +71,9 @@ evothings.eddystone.startScan = function(scanCallback, failCallback)
 	// Therefore we can store data in it and expect to have the data still be there
 	// on the next callback with the same device.
 	evothings.easyble.startScan(
+		// Scan for Eddystone Service UUID.
+		// This enables background scanning on iOS (and Android).
+		['0000FEAA-0000-1000-8000-00805F9B34FB'],
 		function(device)
 		{
 			// A device might be an Eddystone if it has advertisementData...
@@ -191,6 +194,45 @@ evothings.eddystone.calculateAccuracy = function(txPower, rssi)
 	{
 		var accuracy = (0.89976) * Math.pow(ratio, 7.7095) + 0.111
 		return accuracy
+	}
+}
+
+/**
+ * Create a low-pass filter.
+ * @param cutOff The filter cut off value.
+ * @return Object with two functions: filter(value), value()
+ * @example
+ *   // Create filter with cut off 0.8
+ *   var lowpass = evothings.eddystone.createLowPassFilter(0.8)
+ *   // Filter value (returns current filter value)
+ *   distance = lowpass.filter(distance)
+ *   // Get current value
+ *   distance = lowpass.value()
+ */
+evothings.eddystone.createLowPassFilter = function(cutOff, state)
+{
+	// Filter cut off.
+	if (undefined === cutOff) { cutOff = 0.8 }
+
+	// Current value of the filter.
+	if (undefined === state) { state = 0.0 }
+
+	// Return object with filter functions.
+	return {
+		// This function will filter the given value.
+		// Returns the current value of the filter.
+		filter: function(value)
+		{
+			state =
+				(value * (1.0 - cutOff)) +
+				(state * cutOff)
+			return state
+		},
+		// This function returns the current value of the filter.
+		value: function()
+		{
+			return state
+		}
 	}
 }
 
