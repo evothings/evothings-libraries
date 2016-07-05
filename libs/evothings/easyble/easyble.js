@@ -935,15 +935,23 @@
 		 * This is useful when multiple services have characteristics with the
 		 * same UUID. The success function will be called repeatedly whenever there
 		 * is new data available.
+		 * <p>Android only: To disable automatic setup of notify/indicate and write
+		 * the configuration descriptor yourself, supply an options object as
+		 * last parameter, see example below.</p>
 		 * @param {string} serviceUUID - UUID of service that has the given
 		 * characteristic.
 		 * @param {string} characteristicUUID - UUID of characteristic to subscribe to.
 		 * @param {evothings.easyble.dataCallback} success - Success callback:
 		 * success(data).
 		 * @param {evothings.easyble.failCallback} fail - Error callback: fail(error).
+		 * @param {object} options - Android only: Optional object with options.
+		 * Set field writeConfigDescriptor  to false to disable automatic writing of
+		 * notification or indication descriptor value. This is useful if full control
+		 * of writing the config descriptor is needed.
 		 * @public
 		 * @instance
 		 * @example
+		 * // Example call:
 		 * device.enableServiceNotification(
 		 *   serviceUUID,
 		 *   characteristicUUID,
@@ -955,16 +963,21 @@
 		 *   {
 		 *     console.log('BLE enableServiceNotification error: ' + errorCode);
 		 *   });
+		 *
+		 * // To disable automatic writing of the config descriptor
+		 * // supply this as last parameter to enableNotification:
+		 * { writeConfigDescriptor: false }
 		 */
 		device.enableServiceNotification = function(
-			serviceUUID, characteristicUUID, success, fail)
+			serviceUUID, characteristicUUID, success, fail, options)
 		{
 			internal.enableServiceNotification(
 				device,
 				serviceUUID,
 				characteristicUUID,
 				success,
-				fail);
+				fail,
+				options);
 		};
 
 		/**
@@ -997,30 +1010,42 @@
 		 * Unsubscribe from characteristic updates for a specific service to stop
 		 * notifications. This is useful when multiple services have characteristics
 		 * with the same UUID.
+		 * <p>Android only: To disable automatic write of the config descriptor,
+		 * and write it yourself, supply an options object as last parameter,
+		 * see example below.</p>
 		 * @param serviceUUID - UUID of service that has the given characteristic.
 		 * @param characteristicUUID - UUID of characteristic to unsubscribe from.
 		 * @param {evothings.easyble.emptyCallback} success - Success callback: success()
 		 * @param {evothings.easyble.failCallback} fail - Error callback: fail(error)
+		 * @param {object} options - Android only: Optional object with options.
+		 * Set field writeConfigDescriptor  to false to disable automatic writing of
+		 * notification or indication descriptor value. This is useful if full control
+		 * of writing the config descriptor is needed.
 		 * @public
 		 * @instance
 		 * @example
-		 *  device.disableServiceNotification(
-		 *    serviceUUID,
-		 *    characteristicUUID,
-		 *    function()
-		 *    {
-		 *      console.log('BLE characteristic notification disabled');
-		 *    },
-		 *    function(errorCode)
-		 *    {
-		 *      console.log('BLE disableNotification error: ' + errorCode);
-		 *    });
+		 * // Example call:
+		 * device.disableServiceNotification(
+		 *   serviceUUID,
+		 *   characteristicUUID,
+		 *   function()
+		 *   {
+		 *     console.log('BLE characteristic notification disabled');
+		 *   },
+		 *   function(errorCode)
+		 *   {
+		 *     console.log('BLE disableNotification error: ' + errorCode);
+		 *   });
+		 *
+		 * // To disable automatic writing of the config descriptor
+		 * // supply this as last parameter to enableNotification:
+		 * { writeConfigDescriptor: false }
 		 */
 		device.disableServiceNotification = function(
-			serviceUUID, characteristicUUID, success, fail)
+			serviceUUID, characteristicUUID, success, fail, options)
 		{
 			internal.disableServiceNotification(
-				device, serviceUUID, characteristicUUID, success, fail);
+				device, serviceUUID, characteristicUUID, success, fail, options);
 		};
 	};
 
@@ -1450,7 +1475,7 @@
 	 * @private
 	 */
 	internal.enableServiceNotification = function(
-		device, serviceUUID, characteristicUUID, success, fail)
+		device, serviceUUID, characteristicUUID, success, fail, options)
 	{
 		var key = serviceUUID.toLowerCase() + ':' + characteristicUUID.toLowerCase();
 
@@ -1465,7 +1490,8 @@
 			device.deviceHandle,
 			characteristic.handle,
 			success,
-			fail);
+			fail,
+			options);
 	};
 
  	/**
@@ -1496,7 +1522,7 @@
 	 * @private
 	 */
 	internal.disableServiceNotification = function(
-		device, serviceUUID, characteristicUUID, success, fail)
+		device, serviceUUID, characteristicUUID, success, fail, options)
 	{
 		var key = serviceUUID.toLowerCase() + ':' + characteristicUUID.toLowerCase();
 
@@ -1511,7 +1537,8 @@
 			device.deviceHandle,
 			characteristic.handle,
 			success,
-			fail);
+			fail,
+			options);
 	};
 
 	/**
