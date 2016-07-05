@@ -651,6 +651,8 @@
 
 		/**
 		 * Read value of characteristic.
+		 * @deprecated This function may fail when the characteristic UUID is not unique. 
+		 * Use function readServiceCharacteristic.
 		 * @param {string} characteristicUUID - UUID of characteristic to read.
 		 * @param {evothings.easyble.dataCallback} success - Success callback:
 		 * success(data).
@@ -706,6 +708,8 @@
 
 		/**
 		 * Read value of descriptor.
+		 * @deprecated This function may fail when the characteristic UUID is not unique. 
+		 * Use function readServiceDescriptor.
 		 * @param {string} characteristicUUID - UUID of characteristic for descriptor.
 		 * @param {string} descriptorUUID - UUID of descriptor to read.
 		 * @param {evothings.easyble.dataCallback} success - Success callback:
@@ -768,6 +772,8 @@
 
 		/**
 		 * Write value of characteristic.
+		 * @deprecated This function may fail when the characteristic UUID is not unique. 
+		 * Use function writeServiceCharacteristic.
 		 * @param {string} characteristicUUID - UUID of characteristic to write to.
 		 * @param {ArrayBufferView} value - Value to write.
 		 * @param {evothings.easyble.emptyCallback} success - Success callback: success().
@@ -826,6 +832,8 @@
 
 		/**
 		 * Write value of descriptor.
+		 * @deprecated This function may fail when the characteristic UUID is not unique. 
+		 * Use function writeServiceDescriptor.
 		 * @param {string} characteristicUUID - UUID of characteristic for descriptor.
 		 * @param {string} descriptorUUID - UUID of descriptor to write to.
 		 * @param {ArrayBufferView} value - Value to write.
@@ -897,6 +905,8 @@
 		/**
 		 * Subscribe to value updates of a characteristic. The success function
 		 * will be called repeatedly whenever there is new data available.
+		 * @deprecated This function may fail when the characteristic UUID is not unique. 
+		 * Use function enableServiceNotification.
 		 * @param {string} characteristicUUID - UUID of characteristic to subscribe to.
 		 * @param {evothings.easyble.dataCallback} success - Success callback:
 		 * success(data).
@@ -959,6 +969,8 @@
 
 		/**
 		 * Unsubscribe from characteristic updates to stop notifications.
+		 * @deprecated This function may fail when the characteristic UUID is not unique. 
+		 * Use function disableServiceNotification.
 		 * @param characteristicUUID - UUID of characteristic to unsubscribe from.
 		 * @param {evothings.easyble.emptyCallback} success - Success callback: success()
 		 * @param {evothings.easyble.failCallback} fail - Error callback: fail(error)
