@@ -773,7 +773,7 @@
 		 * @public
 		 * @instance
 		 * @example
-		 *   device.writeCharacteristicWithoutResponse(
+		 *   device.writeCharacteristic(
 		 *     characteristicUUID,
 		 *     new Uint8Array([1]), // Write byte with value 1.
 		 *     function()
@@ -782,7 +782,7 @@
 		 *     },
 		 *     function(errorCode)
 		 *     {
-		 *       console.log('BLE writeCharacteristicWithoutResponse error: ' + errorCode);
+		 *       console.log('BLE writeCharacteristic error: ' + errorCode);
 		 *     });
 		 */
 		device.writeCharacteristicWithoutResponse = function(characteristicUUID, value, success, fail)
@@ -844,7 +844,7 @@
 		 * @public
 		 * @instance
 		 * @example
-		 *   device.writeServiceCharacteristicWithoutResponse(
+		 *   device.writeServiceCharacteristic(
 		 *     serviceUUID,
 		 *     characteristicUUID,
 		 *     new Uint8Array([1]), // Write byte with value 1.
@@ -854,7 +854,7 @@
 		 *     },
 		 *     function(errorCode)
 		 *     {
-		 *       console.log('BLE writeServiceCharacteristicWithoutResponse error: ' + errorCode);
+		 *       console.log('BLE writeServiceCharacteristic error: ' + errorCode);
 		 *     });
 		 */
 		device.writeServiceCharacteristicWithoutResponse = function(
