@@ -195,20 +195,20 @@
 	 *       }
 	 *   );
 	 */
-	evothings.easyble.startScan = function(success, fail, serviceUUIDs)
+	evothings.easyble.startScan = function(serviceUUIDs, success, fail)
 	{
 		evothings.easyble.stopScan();
 
 		internal.knownDevices = {};
-		
-		if (serviceUUIDs)
-		{
-			evothings.ble.startScan(serviceUUIDs, onDeviceFound, onError);
-		}
-		else
+
+		if ('function' == typeof uuids)
 		{
 			// No Service UUIDs specified.
 			evothings.ble.startScan(onDeviceFound, onError);
+		}
+		else
+		{
+			evothings.ble.startScan(serviceUUIDs, onDeviceFound, onError);
 		}
 
 		function onDeviceFound(device)
