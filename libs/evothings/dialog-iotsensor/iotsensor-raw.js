@@ -52,7 +52,7 @@
 		{
 			return (device != null) &&
 				(device.name != null) &&
-				(device.name == 'IoT-DK-RAW');
+				(device.name == evothings.iotsensor.RAW);
 		}
 
 		// Finally return the IoT Sensor instance object

@@ -52,7 +52,7 @@
 		{
 			return (device != null) &&
 				(device.name != null) &&
-				(device.name == 'IoT-DK-SFL');
+				(device.name == evothings.iotsensor.SFL);
 		}
 
 		/**
