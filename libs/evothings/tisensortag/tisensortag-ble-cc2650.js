@@ -373,19 +373,8 @@
 		 */
 		instance.getBarometerValues = function(data)
 		{
-			var p = evothings.util.littleEndianToUint16(data, 2)
-
-			// Extraction of pressure value, based on sfloatExp2ToDouble from
-			// BLEUtility.m in Texas Instruments TI BLE SensorTag iOS app
-			// source code.
-			// TODO: Move to util.js
-			var mantissa = p & 0x0FFF
-			var exponent = p >> 12
-
-			magnitude = Math.pow(2, exponent)
-			output = (mantissa * magnitude)
-
-			var pInterpreted = output / 10000.0
+			var rawP = (data[5] << 16) + (data[4] << 8) +  data[3];
+			var pInterpreted = rawP / 100.0;
 
 			return { pressure: pInterpreted }
 		}
