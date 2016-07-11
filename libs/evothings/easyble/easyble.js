@@ -763,44 +763,6 @@
 		};
 
 		/**
-		 * Write value of characteristic without response.
-		 * Asks the remote device to NOT send a confirmation message
-		 * This may be used for increased data troughput
-		 * @param {string} characteristicUUID - UUID of characteristic to write to.
-		 * @param {ArrayBufferView} value - Value to write.
-		 * @param {evothings.easyble.emptyCallback} success - Success callback: success().
-		 * @param {evothings.easyble.failCallback} fail - Error callback: fail(error).
-		 * @public
-		 * @instance
-		 * @example
-		 *   device.writeCharacteristic(
-		 *     characteristicUUID,
-		 *     new Uint8Array([1]), // Write byte with value 1.
-		 *     function()
-		 *     {
-		 *       console.log('BLE characteristic written.');
-		 *     },
-		 *     function(errorCode)
-		 *     {
-		 *       console.log('BLE writeCharacteristic error: ' + errorCode);
-		 *     });
-		 */
-		device.writeCharacteristicWithoutResponse = function(characteristicUUID, value, success, fail)
-		{
-			// Only implemented for Android, for any other OS, use writeCharacteristic
-			if(evothings.os.isAndroid())
-			{
-				internal.writeCharacteristicWithoutResponse(
-					device, characteristicUUID, value, success, fail);
-			}
-			else
-			{
-				internal.writeCharacteristic(
-					device, characteristicUUID, value, success, fail);
-			}
-		};
-
-		/**
 		 * Write value of a characteristic for a specific service. This is useful when
 		 * multiple services have characteristics with the same UUID.
 		 * @param {string} serviceUUID - UUID of service that has the characteristic.
@@ -829,48 +791,6 @@
 		{
 			internal.writeServiceCharacteristic(
 				device, serviceUUID, characteristicUUID, value, success, fail);
-		};
-
-		/**
-		 * Write value of a characteristic for a specific service without response. This is useful when
-		 * multiple services have characteristics with the same UUID.
-		 * Asks the remote device to NOT send a confirmation message
-		 * This may be used for increased data troughput
-		 * @param {string} serviceUUID - UUID of service that has the characteristic.
-		 * @param {string} characteristicUUID - UUID of characteristic to write to.
-		 * @param {ArrayBufferView} value - Value to write.
-		 * @param {evothings.easyble.emptyCallback} success - Success callback: success().
-		 * @param {evothings.easyble.failCallback} fail - Error callback: fail(error).
-		 * @public
-		 * @instance
-		 * @example
-		 *   device.writeServiceCharacteristic(
-		 *     serviceUUID,
-		 *     characteristicUUID,
-		 *     new Uint8Array([1]), // Write byte with value 1.
-		 *     function()
-		 *     {
-		 *       console.log('BLE characteristic written.');
-		 *     },
-		 *     function(errorCode)
-		 *     {
-		 *       console.log('BLE writeServiceCharacteristic error: ' + errorCode);
-		 *     });
-		 */
-		device.writeServiceCharacteristicWithoutResponse = function(
-			serviceUUID, characteristicUUID, value, success, fail)
-		{
-			// Only implemented for Android, for any other OS, use writeServiceCharacteristic
-			if(evothings.os.isAndroid())
-			{
-				internal.writeServiceCharacteristicWithoutResponse(
-					device, serviceUUID, characteristicUUID, value, success, fail);
-			}
-			else
-			{
-				internal.writeServiceCharacteristic(
-					device, serviceUUID, characteristicUUID, value, success, fail);
-			}
 		};
 
 		/**
@@ -1369,38 +1289,6 @@
 	};
 
 	/**
- 	 * Called from evothings.easyble.EasyBLEDevice.
- 	 * Experimental, implemented on Android
-	 * @private
-	 */
-	internal.writeCharacteristicWithoutResponse = function(
-		device, characteristicUUID, value, success, fail)
-	{
-		characteristicUUID = characteristicUUID.toLowerCase();
-
-		var characteristic = device.__uuidMap[characteristicUUID];
-		if (!characteristic)
-		{
-			fail(evothings.easyble.error.CHARACTERISTIC_NOT_FOUND + ' ' +
-				characteristicUUID);
-			return;
-		}
-
-		evothings.ble.writeCharacteristicWithoutResponse(
-			device.deviceHandle,
-			characteristic.handle,
-			value,
-			function()
-			{
-				success();
-			},
-			function(errorCode)
-			{
-				fail(errorCode);
-			});
-	};
-
-	/**
 	* Called from evothings.easyble.EasyBLEDevice.
 	* @private
 	*/
@@ -1417,31 +1305,6 @@
 		}
 
 		evothings.ble.writeCharacteristic(
-			device.deviceHandle,
-			characteristic.handle,
-			value,
-			success,
-			fail);
-	};
-
-	/**
-	* Called from evothings.easyble.EasyBLEDevice.
- 	* Experimental, implemented on Android
-	* @private
-	*/
-	internal.writeServiceCharacteristicWithoutResponse = function(
-		device, serviceUUID, characteristicUUID, value, success, fail)
-	{
-		var key = serviceUUID.toLowerCase() + ':' + characteristicUUID.toLowerCase();
-
-		var characteristic = device.__serviceMap[key];
-		if (!characteristic)
-		{
-			fail(evothings.easyble.error.CHARACTERISTIC_NOT_FOUND + ' ' + key);
-			return;
-		}
-
-		evothings.ble.writeCharacteristicWithoutResponse(
 			device.deviceHandle,
 			characteristic.handle,
 			value,
