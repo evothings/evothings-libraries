@@ -367,4 +367,99 @@ function parseFrameTLM(device, data, win, fail)
 	return true;
 }
 
+var isAdvertising = false;
+
+function isValidHex(str, len) {
+  return typeof str === "string" && str.length === len * 2 && /^[0-9A-F]+$/.test(str)
+}
+
+function txPowerLevel() {
+  // ADVERTISE_TX_POWER_MEDIUM taken from
+	// txeddystone_uid/MainActivity.java#L324-L340 (https://goo.gl/MqWqUu)
+  return -26
+}
+
+// From [txeddystone_uid/MainActivity.java](https://goo.gl/VGtnN1)
+function toByteArray(hexString) {
+  var out = [];
+
+  for (var i = 0; i < hexString.length; i += 2) {
+    out.push((parseInt(hexString.charAt(i), 16) << 4)
+        + parseInt(hexString.charAt(i + 1), 16));
+  }
+
+  return out;
+}
+
+function buildServiceData(namespace, instance) {
+  var data = [0, txPowerLevel()];
+
+  Array.prototype.push.apply(data, toByteArray(namespace));
+  Array.prototype.push.apply(data, toByteArray(instance));
+
+  return base64.fromArrayBuffer(Uint8Array.from(data));
+}
+
+/**
+ * @description Start Advertising Eddystone Beacon.
+ * <p>Namespace may only be 10 hex bytes</p>
+ * <p>Instance may only be 6 hex bytes</p>
+ * <p>Will keep advertising indefinitely until you call stopAdvertise().</p>
+ * @public
+ * @param {string} namespace - Hex namespace string (10 bytes, 20 chars)
+ * @param {string} instance - Hex instance string (6 bytes, 12 chars)
+ * @param {evothings.eddystone.advertiseCallback} - Success function called when advertising started
+ * @param {evothings.eddystone.failCallback} - Error callback: fail(error).
+ * @example
+ *   evothings.eddystone.startAdvertise("0123456789ABCDEF0123", "0123456789AB");
+ */
+evothings.eddystone.startAdvertise = function(namespace, instance, advertiseCallback, failCallback) {
+	// Internal callback variable names.
+	var win = advertiseCallback;
+	var fail = failCallback;
+
+	if(isAdvertising) {
+		fail("Advertising already in progress!");
+		return;
+	}
+
+  if (!isValidHex(namespace, 10)) {
+    fail("Invalid namespace, must be 10 hex bytes");
+    return;
+  }
+  if (!isValidHex(instance, 6)) {
+    fail("Invalid instance, must be 6 hex bytes");
+    return;
+  }
+
+	isAdvertising = true;
+
+  var serviceData = buildServiceData(namespace, instance);
+
+  var transmitData = {
+    serviceUUIDs: ["0000FEAA-0000-1000-8000-00805F9B34FB"],
+    serviceData: { "0000FEAA-0000-1000-8000-00805F9B34FB": serviceData }
+  };
+
+  var settings = {
+    broadcastData: transmitData,
+    scanResponseData: transmitData
+  };
+
+  evothings.ble.peripheral.startAdvertise(settings, win, fail)
+}
+
+/**
+ * @description Stop Advertising Eddystone Beacon.
+ * @public
+ * @param {Function} onSuccess - Success function called when advertising stoppped
+ * @param {evothings.eddystone.failCallback} - Error callback: fail(error).
+ * @example
+ *   evothings.eddystone.stopAdvertise();
+ */
+evothings.eddystone.stopAdvertise = function(onSuccess, failCallback) {
+  isAdvertising = false;
+	evothings.ble.peripheral.stopAdvertise(onSuccess, failCallback);
+}
+
 })();
