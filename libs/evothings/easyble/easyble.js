@@ -643,13 +643,17 @@
 			var deviceName = device.advertisementData ?
 				device.advertisementData.kCBAdvDataLocalName : false;
 			if (deviceName) 
-			{ 
+			{
+				// TODO: This should be a comparison, but there has been
+				// instances of the kCBAdvDataLocalName field ending with 
+				// a non-printable character, using indexOf is a quick 
+				// fix for this.
 				return 0 == deviceName.indexOf(name);
 			}
 			
 			// Otherwise check if device.name matches (cached by iOS,
 			// might not match if device name is updated).
-			return name = device.name;
+			return name == device.name;
 		};
 
 		/**
@@ -1320,6 +1324,13 @@
 					device.__uuidMap[characteristic.uuid] = characteristic;
 					device.__serviceMap[service.uuid + ':' + characteristic.uuid] = characteristic;
 
+					// DEBUG LOG
+					console.log('storing service:characteristic key: ' + service.uuid + ':' + characteristic.uuid);
+					if (!characteristic)
+					{
+						console.log('  --> characteristic is null!')
+					}
+					
 					// Read descriptors for characteristic.
 					evothings.ble.descriptors(
 						device.deviceHandle,
@@ -1578,6 +1589,14 @@
 		device, serviceUUID, characteristicUUID, value, success, fail)
 	{
 		var key = serviceUUID.toLowerCase() + ':' + characteristicUUID.toLowerCase();
+
+		// DEBUG LOG
+		console.log('internal.writeServiceCharacteristicWithoutResponse key: ' + key)
+		console.log('internal.writeServiceCharacteristicWithoutResponse serviceMap:')
+		for (var theKey in device.__serviceMap)
+		{
+			console.log('  ' + theKey);
+		}
 
 		var characteristic = device.__serviceMap[key];
 		if (!characteristic)
