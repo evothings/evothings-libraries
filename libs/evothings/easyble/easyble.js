@@ -793,6 +793,15 @@
 				fail = arg3;
 				options = arg4;
 			}
+			// Previously you could set first param to null to read all services.
+			// Here we handle this case for backwards compatibility.
+			else if (arg1 === undefined || arg1 === null)
+			{
+				serviceUUIDs = null;
+				success = arg2;
+				fail = arg3;
+				options = arg4;
+			}
 			else
 			{
 				success = arg1;
