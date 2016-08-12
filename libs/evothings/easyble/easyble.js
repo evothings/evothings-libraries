@@ -23,6 +23,11 @@
 	evothings.easyble.error = {};
 
 	/**
+	 * @description BLE device already connected.
+	 */
+	evothings.easyble.error.DEVICE_ALREADY_CONNECTED = 'EASYBLE_ERROR_DEVICE_ALREADY_CONNECTED';
+
+	/**
 	 * @description BLE device was disconnected.
 	 */
 	evothings.easyble.error.DISCONNECTED = 'EASYBLE_ERROR_DISCONNECTED';
@@ -1240,37 +1245,49 @@
 		// Check that device is not already connected.
 		if (device.__isConnected)
 		{
-			fail('Device already connected');
+			fail(evothings.easyble.error.DEVICE_ALREADY_CONNECTED);
 			return;
 		}
 		
-		evothings.ble.connect(device.address, function(connectInfo)
-		{
-			if (connectInfo.state == 2) // connected
+		evothings.ble.connect(
+			device.address,
+			// Success callback.
+			function(connectInfo)
 			{
-				device.deviceHandle = connectInfo.deviceHandle;
-				device.__uuidMap = {};
-				device.__serviceMap = {};
-				device.__isConnected = true;
-				internal.connectedDevices[device.address] = device;
+				// DEBUG LOG
+				console.log('BLE connect state: ' + connectInfo.state);
+			
+				if (connectInfo.state == 2) // connected
+				{
+					device.deviceHandle = connectInfo.deviceHandle;
+					device.__uuidMap = {};
+					device.__serviceMap = {};
+					device.__isConnected = true;
+					internal.connectedDevices[device.address] = device;
 
-				success(device);
-			}
-			else if (connectInfo.state == 0) // disconnected
+					success(device);
+				}
+				else if (connectInfo.state == 0) // disconnected
+				{
+					device.__isConnected = false;
+					internal.connectedDevices[device.address] = null;
+
+					// TODO: Perhaps this should be redesigned, as disconnect is
+					// more of a status change than an error? What do you think?
+					fail && fail(evothings.easyble.error.DISCONNECTED);
+				}
+			},
+			// Error callback.
+			function(errorCode)
 			{
-				var theDevice = internal.connectedDevices[device.address];
-				theDevice.__isConnected = false;
+				// DEBUG LOG
+				console.log('BLE connect error: ' + errorCode);
+			
+				// Set isConnected to false on error.
+				device.__isConnected = false;
 				internal.connectedDevices[device.address] = null;
-
-				// TODO: Perhaps this should be redesigned, as disconnect is
-				// more of a status change than an error? What do you think?
-				fail && fail(evothings.easyble.error.DISCONNECTED);
-			}
-		},
-		function(errorCode)
-		{
-			fail(errorCode);
-		});
+				fail(errorCode);
+			});
 	};
 	
 	/**
@@ -1334,12 +1351,12 @@
 					device.__serviceMap[service.uuid + ':' + characteristic.uuid] = characteristic;
 
 					// DEBUG LOG
-					console.log('storing service:characteristic key: ' + service.uuid + ':' + characteristic.uuid);
-					if (!characteristic)
-					{
-						console.log('  --> characteristic is null!')
-					}
-					
+					//console.log('storing service:characteristic key: ' + service.uuid + ':' + characteristic.uuid);
+					//if (!characteristic)
+					//{
+					//	console.log('  --> characteristic is null!')
+					//}
+
 					// Read descriptors for characteristic.
 					evothings.ble.descriptors(
 						device.deviceHandle,
@@ -1600,8 +1617,8 @@
 		var key = serviceUUID.toLowerCase() + ':' + characteristicUUID.toLowerCase();
 
 		// DEBUG LOG
-		console.log('internal.writeServiceCharacteristicWithoutResponse key: ' + key)
-		console.log('internal.writeServiceCharacteristicWithoutResponse serviceMap:')
+		//console.log('internal.writeServiceCharacteristicWithoutResponse key: ' + key)
+		//console.log('internal.writeServiceCharacteristicWithoutResponse serviceMap:')
 		for (var theKey in device.__serviceMap)
 		{
 			console.log('  ' + theKey);
