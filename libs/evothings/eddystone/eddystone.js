@@ -391,13 +391,18 @@ function toByteArray(hexString) {
   return out;
 }
 
+// Variable that points to the Cordova Base64 module, loaded lazily.
+var base64;
+
 function buildServiceData(namespace, instance) {
+  if (!base64) { base64 = cordova.require('cordova/base64'); }
+
   var data = [0, txPowerLevel()];
 
   Array.prototype.push.apply(data, toByteArray(namespace));
   Array.prototype.push.apply(data, toByteArray(instance));
 
-  return base64.fromArrayBuffer(Uint8Array.from(data));
+  return base64.fromArrayBuffer(new Uint8Array(data));
 }
 
 /**
@@ -432,8 +437,6 @@ evothings.eddystone.startAdvertise = function(namespace, instance, advertiseCall
     return;
   }
 
-	isAdvertising = true;
-
   var serviceData = buildServiceData(namespace, instance);
 
   var transmitData = {
@@ -446,7 +449,14 @@ evothings.eddystone.startAdvertise = function(namespace, instance, advertiseCall
     scanResponseData: transmitData
   };
 
-  evothings.ble.peripheral.startAdvertise(settings, win, fail)
+  evothings.ble.peripheral.startAdvertise(
+  	settings, 
+  	function() { 
+  	  isAdvertising = true;
+  	  win() }, 
+  	function(error) { 
+  	  isAdvertising = false;
+  	  fail(error) });
 }
 
 /**
