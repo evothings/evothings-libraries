@@ -49,8 +49,10 @@
 
 	/**
 	 * @private
+	 * This variable is set "lazily", because when this script is loaded
+	 * the Base64 Cordova module may not be loaded yet.
 	 */
-	var base64 = cordova.require('cordova/base64');
+	var base64;
 
 	/**
 	 * Set to true to report found devices only once,
@@ -372,6 +374,8 @@
 	 */
 	internal.ensureAdvertisementData = function(device)
 	{
+		if (!base64) { base64 = cordova.require('cordova/base64'); }
+
 		// If device object already has advertisementData we
 		// do not need to parse the scanRecord.
 		if (device.advertisementData) { return; }
