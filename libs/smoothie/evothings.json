@@ -1,0 +1,8 @@
+{
+  "name": "smoothie",
+  "version": "1.28",
+  "title": "Smoothie Charts",
+  "description": "Smoothie Charts is a simple library for displaying smooth live time lines. It's very easy to use, small and looks good.",
+  "icon" :"app-icon.png",
+  "doc-url" :"https://smoothiecharts.org"
+}
