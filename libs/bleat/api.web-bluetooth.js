@@ -1,7 +1,6 @@
 /* @license
  *
  * BLE Abstraction Tool: core functionality - web bluetooth specification
- * Version: 0.0.17
  *
  * The MIT License (MIT)
  *
@@ -185,7 +184,9 @@
             };
 
             adapter.startScan(searchUUIDs, function(deviceInfo) {
-                if (!options.deviceFound) {
+
+                // filter devices if filters specified
+                if (options.filters) {
                     deviceInfo = filterDevice(options, deviceInfo);
                 }
 
@@ -231,11 +232,6 @@
             manufacturerData: new Map(),
             serviceData: new Map()
         };
-        this.deviceClass = null;
-        this.vendorIDSource = "bluetooth";
-        this.vendorID = null;
-        this.productID = null;
-        this.productVersion = null;
         this.gatt = new BluetoothRemoteGATTServer();
         this.gatt.device = this;
         this.uuids = [];

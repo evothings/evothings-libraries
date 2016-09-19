@@ -1,11 +1,10 @@
 /* @license
  *
  * BLE Abstraction Tool: core functionality - classic specification
- * Version: 0.0.15
  *
  * The MIT License (MIT)
  *
- * Copyright (c) 2015 Rob Moran
+ * Copyright (c) 2016 Rob Moran
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -251,8 +250,12 @@
             adapters[adapterName] = definition;
             adapter = definition;
         },
-        startScan: function(serviceUUIDs, foundFn, completeFn, errorFn) {
+        startScan: function(serviceUUIDs, foundFn, completeFn, errorFn, allowDuplicates) {
             if (typeof serviceUUIDs === "function") {
+                // Service UUIDs not present, shift args.
+                allowDuplicates = errorFn;
+                errorFn = completeFn;
+                completeFn = foundFn;
                 foundFn = serviceUUIDs;
                 serviceUUIDs = [];
             } else if (typeof serviceUUIDs === "string") {
@@ -262,7 +265,7 @@
             var devices = {};
             adapter.startScan(serviceUUIDs, function(deviceInfo) {
                 var device = new Device(deviceInfo);
-                if (devices[device.address]) return;
+                if (devices[device.address] && !allowDuplicates) return;
                 devices[device.address] = device;
                 if (foundFn) foundFn(device);
             }.bind(this), completeFn, raiseError(errorFn, "scan error"));

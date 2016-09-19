@@ -1,4 +1,4 @@
-// File: easyble.js
+// File: easyble.js updated 160620
 
 ;(function()
 {
@@ -201,9 +201,11 @@
 
 		internal.knownDevices = {};
 
-		if ('function' == typeof uuids)
+		if ('function' == typeof serviceUUIDs)
 		{
 			// No Service UUIDs specified.
+			fail = success;
+			success = serviceUUIDs;
 			evothings.ble.startScan(onDeviceFound, onError);
 		}
 		else
@@ -240,6 +242,9 @@
 
 			// New device, add to known devices.
 			internal.knownDevices[device.address] = device;
+
+			// Set connect status.
+			device.__isConnected = false;
 
 			// Add methods to the device info object.
 			internal.addMethodsToDeviceObject(device);
@@ -518,7 +523,8 @@
 		 */
 
 		/**
-		 * Match device name.
+		 * Match device name. First checks the device name present in
+		 * advertisement data, if not present checks device.name field.
 		 * @param name The name to match.
 		 * @return true if device has the given name, false if not.
 		 * @public
@@ -528,10 +534,18 @@
 		 */
 		device.hasName = function(name)
 		{
+			// If there is a device name present in advertisement data,
+			// check if this matches. (This name is not cached by iOS.)
 			var deviceName = device.advertisementData ?
-				device.advertisementData.kCBAdvDataLocalName : null;
-			if (!deviceName) { return false }
-			return 0 == deviceName.indexOf(name);
+				device.advertisementData.kCBAdvDataLocalName : false;
+			if (deviceName) 
+			{ 
+				return 0 == deviceName.indexOf(name);
+			}
+			
+			// Otherwise check if device.name matches (cached by iOS,
+			// might not match if device name is updated).
+			return name = device.name;
 		};
 
 		/**
@@ -561,6 +575,19 @@
 		};
 
 		/**
+		 * Check if device is connected.
+		 * @return true if connected, false if not connected.
+		 * @public
+		 * @instance
+		 * @example
+		 *   var connected = device.isConnected();
+		 */
+		device.isConnected = function()
+		{
+			return device.__isConnected;
+		};
+
+		/**
 		 * Close the device. This disconnects from the BLE device.
 		 * @public
 		 * @instance
@@ -569,7 +596,11 @@
 		 */
 		device.close = function()
 		{
-			device.deviceHandle && evothings.ble.close(device.deviceHandle);
+			if (device.deviceHandle)
+			{
+				device.__isConnected = false;
+				evothings.ble.close(device.deviceHandle);
+			}
 		};
 
 		/**
@@ -620,6 +651,8 @@
 
 		/**
 		 * Read value of characteristic.
+		 * @deprecated This function may fail when the characteristic UUID is not unique. 
+		 * Use function readServiceCharacteristic.
 		 * @param {string} characteristicUUID - UUID of characteristic to read.
 		 * @param {evothings.easyble.dataCallback} success - Success callback:
 		 * success(data).
@@ -675,6 +708,8 @@
 
 		/**
 		 * Read value of descriptor.
+		 * @deprecated This function may fail when the characteristic UUID is not unique. 
+		 * Use function readServiceDescriptor.
 		 * @param {string} characteristicUUID - UUID of characteristic for descriptor.
 		 * @param {string} descriptorUUID - UUID of descriptor to read.
 		 * @param {evothings.easyble.dataCallback} success - Success callback:
@@ -737,6 +772,8 @@
 
 		/**
 		 * Write value of characteristic.
+		 * @deprecated This function may fail when the characteristic UUID is not unique. 
+		 * Use function writeServiceCharacteristic.
 		 * @param {string} characteristicUUID - UUID of characteristic to write to.
 		 * @param {ArrayBufferView} value - Value to write.
 		 * @param {evothings.easyble.emptyCallback} success - Success callback: success().
@@ -794,7 +831,42 @@
 		};
 
 		/**
+		 * Write value of a characteristic for a specific service without response.
+		 * This faster but not as fail safe as writing with response.
+		 * Asks the remote device to NOT send a confirmation message.
+		 * Experimental, implemented on Android.
+		 * @param {string} serviceUUID - UUID of service that has the characteristic.
+		 * @param {string} characteristicUUID - UUID of characteristic to write to.
+		 * @param {ArrayBufferView} value - Value to write.
+		 * @param {evothings.easyble.emptyCallback} success - Success callback: success().
+		 * @param {evothings.easyble.failCallback} fail - Error callback: fail(error).
+		 * @public
+		 * @instance
+		 * @example
+		 *   device.writeServiceCharacteristicWithoutResponse(
+		 *     serviceUUID,
+		 *     characteristicUUID,
+		 *     new Uint8Array([1]), // Write byte with value 1.
+		 *     function()
+		 *     {
+		 *       console.log('BLE data sent.');
+		 *     },
+		 *     function(errorCode)
+		 *     {
+		 *       console.log('BLE writeServiceCharacteristicWithoutResponse error: ' + errorCode);
+		 *     });
+		 */
+		device.writeServiceCharacteristicWithoutResponse = function(
+			serviceUUID, characteristicUUID, value, success, fail)
+		{
+			internal.writeServiceCharacteristicWithoutResponse(
+				device, serviceUUID, characteristicUUID, value, success, fail);
+		};
+
+		/**
 		 * Write value of descriptor.
+		 * @deprecated This function may fail when the characteristic UUID is not unique. 
+		 * Use function writeServiceDescriptor.
 		 * @param {string} characteristicUUID - UUID of characteristic for descriptor.
 		 * @param {string} descriptorUUID - UUID of descriptor to write to.
 		 * @param {ArrayBufferView} value - Value to write.
@@ -866,6 +938,8 @@
 		/**
 		 * Subscribe to value updates of a characteristic. The success function
 		 * will be called repeatedly whenever there is new data available.
+		 * @deprecated This function may fail when the characteristic UUID is not unique. 
+		 * Use function enableServiceNotification.
 		 * @param {string} characteristicUUID - UUID of characteristic to subscribe to.
 		 * @param {evothings.easyble.dataCallback} success - Success callback:
 		 * success(data).
@@ -894,15 +968,23 @@
 		 * This is useful when multiple services have characteristics with the
 		 * same UUID. The success function will be called repeatedly whenever there
 		 * is new data available.
+		 * <p>Android only: To disable automatic setup of notify/indicate and write
+		 * the configuration descriptor yourself, supply an options object as
+		 * last parameter, see example below.</p>
 		 * @param {string} serviceUUID - UUID of service that has the given
 		 * characteristic.
 		 * @param {string} characteristicUUID - UUID of characteristic to subscribe to.
 		 * @param {evothings.easyble.dataCallback} success - Success callback:
 		 * success(data).
 		 * @param {evothings.easyble.failCallback} fail - Error callback: fail(error).
+		 * @param {object} options - Android only: Optional object with options.
+		 * Set field writeConfigDescriptor  to false to disable automatic writing of
+		 * notification or indication descriptor value. This is useful if full control
+		 * of writing the config descriptor is needed.
 		 * @public
 		 * @instance
 		 * @example
+		 * // Example call:
 		 * device.enableServiceNotification(
 		 *   serviceUUID,
 		 *   characteristicUUID,
@@ -914,20 +996,27 @@
 		 *   {
 		 *     console.log('BLE enableServiceNotification error: ' + errorCode);
 		 *   });
+		 *
+		 * // To disable automatic writing of the config descriptor
+		 * // supply this as last parameter to enableNotification:
+		 * { writeConfigDescriptor: false }
 		 */
 		device.enableServiceNotification = function(
-			serviceUUID, characteristicUUID, success, fail)
+			serviceUUID, characteristicUUID, success, fail, options)
 		{
 			internal.enableServiceNotification(
 				device,
 				serviceUUID,
 				characteristicUUID,
 				success,
-				fail);
+				fail,
+				options);
 		};
 
 		/**
 		 * Unsubscribe from characteristic updates to stop notifications.
+		 * @deprecated This function may fail when the characteristic UUID is not unique. 
+		 * Use function disableServiceNotification.
 		 * @param characteristicUUID - UUID of characteristic to unsubscribe from.
 		 * @param {evothings.easyble.emptyCallback} success - Success callback: success()
 		 * @param {evothings.easyble.failCallback} fail - Error callback: fail(error)
@@ -954,30 +1043,42 @@
 		 * Unsubscribe from characteristic updates for a specific service to stop
 		 * notifications. This is useful when multiple services have characteristics
 		 * with the same UUID.
+		 * <p>Android only: To disable automatic write of the config descriptor,
+		 * and write it yourself, supply an options object as last parameter,
+		 * see example below.</p>
 		 * @param serviceUUID - UUID of service that has the given characteristic.
 		 * @param characteristicUUID - UUID of characteristic to unsubscribe from.
 		 * @param {evothings.easyble.emptyCallback} success - Success callback: success()
 		 * @param {evothings.easyble.failCallback} fail - Error callback: fail(error)
+		 * @param {object} options - Android only: Optional object with options.
+		 * Set field writeConfigDescriptor  to false to disable automatic writing of
+		 * notification or indication descriptor value. This is useful if full control
+		 * of writing the config descriptor is needed.
 		 * @public
 		 * @instance
 		 * @example
-		 *  device.disableServiceNotification(
-		 *    serviceUUID,
-		 *    characteristicUUID,
-		 *    function()
-		 *    {
-		 *      console.log('BLE characteristic notification disabled');
-		 *    },
-		 *    function(errorCode)
-		 *    {
-		 *      console.log('BLE disableNotification error: ' + errorCode);
-		 *    });
+		 * // Example call:
+		 * device.disableServiceNotification(
+		 *   serviceUUID,
+		 *   characteristicUUID,
+		 *   function()
+		 *   {
+		 *     console.log('BLE characteristic notification disabled');
+		 *   },
+		 *   function(errorCode)
+		 *   {
+		 *     console.log('BLE disableNotification error: ' + errorCode);
+		 *   });
+		 *
+		 * // To disable automatic writing of the config descriptor
+		 * // supply this as last parameter to enableNotification:
+		 * { writeConfigDescriptor: false }
 		 */
 		device.disableServiceNotification = function(
-			serviceUUID, characteristicUUID, success, fail)
+			serviceUUID, characteristicUUID, success, fail, options)
 		{
 			internal.disableServiceNotification(
-				device, serviceUUID, characteristicUUID, success, fail);
+				device, serviceUUID, characteristicUUID, success, fail, options);
 		};
 	};
 
@@ -988,6 +1089,13 @@
 	 */
 	internal.connectToDevice = function(device, success, fail)
 	{
+		// Check that device is not already connected.
+		if (device.__isConnected)
+		{
+			fail('Device already connected');
+			return;
+		}
+		
 		evothings.ble.connect(device.address, function(connectInfo)
 		{
 			if (connectInfo.state == 2) // connected
@@ -995,12 +1103,15 @@
 				device.deviceHandle = connectInfo.deviceHandle;
 				device.__uuidMap = {};
 				device.__serviceMap = {};
+				device.__isConnected = true;
 				internal.connectedDevices[device.address] = device;
 
 				success(device);
 			}
 			else if (connectInfo.state == 0) // disconnected
 			{
+				var theDevice = internal.connectedDevices[device.address];
+				theDevice.__isConnected = false;
 				internal.connectedDevices[device.address] = null;
 
 				// TODO: Perhaps this should be redesigned, as disconnect is
@@ -1013,7 +1124,7 @@
 			fail(errorCode);
 		});
 	};
-
+	
 	/**
 	 * Obtain device services, them read characteristics and descriptors
 	 * for the services with the given uuid(s).
@@ -1312,6 +1423,30 @@
 			fail);
 	};
 
+	/**
+	* Called from evothings.easyble.EasyBLEDevice.
+	* @private
+	*/
+	internal.writeServiceCharacteristicWithoutResponse = function(
+		device, serviceUUID, characteristicUUID, value, success, fail)
+	{
+		var key = serviceUUID.toLowerCase() + ':' + characteristicUUID.toLowerCase();
+
+		var characteristic = device.__serviceMap[key];
+		if (!characteristic)
+		{
+			fail(evothings.easyble.error.CHARACTERISTIC_NOT_FOUND + ' ' + key);
+			return;
+		}
+
+		evothings.ble.writeCharacteristicWithoutResponse(
+			device.deviceHandle,
+			characteristic.handle,
+			value,
+			success,
+			fail);
+	};
+
  	/**
  	 * Called from evothings.easyble.EasyBLEDevice.
 	 * @private
@@ -1397,7 +1532,7 @@
 	 * @private
 	 */
 	internal.enableServiceNotification = function(
-		device, serviceUUID, characteristicUUID, success, fail)
+		device, serviceUUID, characteristicUUID, success, fail, options)
 	{
 		var key = serviceUUID.toLowerCase() + ':' + characteristicUUID.toLowerCase();
 
@@ -1412,7 +1547,8 @@
 			device.deviceHandle,
 			characteristic.handle,
 			success,
-			fail);
+			fail,
+			options);
 	};
 
  	/**
@@ -1443,7 +1579,7 @@
 	 * @private
 	 */
 	internal.disableServiceNotification = function(
-		device, serviceUUID, characteristicUUID, success, fail)
+		device, serviceUUID, characteristicUUID, success, fail, options)
 	{
 		var key = serviceUUID.toLowerCase() + ':' + characteristicUUID.toLowerCase();
 
@@ -1458,7 +1594,8 @@
 			device.deviceHandle,
 			characteristic.handle,
 			success,
-			fail);
+			fail,
+			options);
 	};
 
 	/**
