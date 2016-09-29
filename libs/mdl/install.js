@@ -24,8 +24,10 @@
 
   // 2. Add a reference in index.html right before </body>
   // Note that we can't use <script blabla /> - it will fail
-  cher('body').append(`
+  cher('head').append(`
   <link rel="stylesheet" href="${cssPath}">
+`)
+  cher('body').append(`
   <script src="${scriptPath}"></script>
 `)
 
