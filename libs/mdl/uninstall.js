@@ -8,7 +8,8 @@
   var html = FILEUTIL.readFileSync(indexPath)
   var scriptPath = `libs/${lib}/${lib}.js`
   var cssPath = `libs/${lib}/${lib}.css`
-  
+  var googleFonts = `https://fonts.googleapis.com/icon?family=Material+Icons`
+
   var cher = CHEERIO.load(html, { xmlMode: false })
   var element = cher('script').filter(function(i, el) {
     return cher(this).attr('src') === scriptPath
@@ -18,6 +19,12 @@
   }
   var element = cher('link').filter(function(i, el) {
     return cher(this).attr('href') === cssPath
+  })
+  if (element.length > 0) {
+    element.remove()
+  }
+  var element = cher('link').filter(function(i, el) {
+    return cher(this).attr('href') === googleFonts
   })
   if (element.length > 0) {
     element.remove()
