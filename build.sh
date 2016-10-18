@@ -16,10 +16,10 @@ for D in *; do
       echo "Copying $D to $OUT ..."
       cp -a ../$D $OUT/
       echo "Collecting evothings.json ..."
-      cat evothings.json >> $LIST
       if [ "$FIRST" = false ] ; then
         printf ",\n" >> $LIST
       fi
+      cat evothings.json >> $LIST
       FIRST=false
       echo "Making zip for ${D} ..."
       zip -r $OUT/$D.zip *
