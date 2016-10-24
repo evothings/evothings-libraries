@@ -8,7 +8,7 @@
   var html = FILEUTIL.readFileSync(indexPath)
   var scriptPath = `libs/${lib}/material.js`
   var cssPath = `libs/${lib}/material.css`
-  var googleFonts = `libs/${lib}/material-design-icons/material-design-icons.css`
+  var googleFonts = `libs/${lib}/icons/material-icons.css`
 
   var cher = CHEERIO.load(html, { xmlMode: false })
   var element = cher('script').filter(function(i, el) {

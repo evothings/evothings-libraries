@@ -6,7 +6,7 @@
   var html = FILEUTIL.readFileSync(indexPath)
   var scriptPath = `libs/${lib}/material.js`
   var cssPath = `libs/${lib}/material.css`
-  var googleFonts = `libs/${lib}/material-design-icons/material-design-icons.css`
+  var googleFonts = `libs/${lib}/icons/material-icons.css`
 
   // 1. Remove any existing reference in index.html
   cher = CHEERIO.load(html, { xmlMode: false })
