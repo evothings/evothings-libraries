@@ -90,6 +90,7 @@ evothings.eddystone.startScan = function(scanCallback, failCallback)
 			// If the data matches one of the Eddystone frame formats,
 			// we can forward it to the user.
 			if(parseFrameUID(device, byteArray, win, fail)) return;
+			if(parseFrameEID(device, byteArray, win, fail)) return;
 			if(parseFrameURL(device, byteArray, win, fail)) return;
 			if(parseFrameTLM(device, byteArray, win, fail)) return;
 		},
@@ -257,6 +258,24 @@ function parseFrameUID(device, data, win, fail)
 	win(device);
 
 	return true;
+}
+
+function parseFrameEID(device, data, win, fail)
+{
+    if(data[0] != 0x30) return false;
+
+    if(data.byteLength < 10)
+    {
+        fail("EID frame: invalid byteLength: "+data.byteLength);
+        return true;
+    }
+
+    device.txPower = evothings.util.littleEndianToInt8(data, 1);
+    device.eid = data.subarray(2, 9);  // EID.
+
+    win(device);
+
+    return true;
 }
 
 function parseFrameURL(device, data, win, fail)
