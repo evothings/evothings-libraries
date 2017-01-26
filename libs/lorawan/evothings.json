@@ -1,0 +1,8 @@
+{
+  "name": "lorawan",
+  "versions": ["0.1"],
+  "title": "LoRaWAN",
+  "description": "LoRaWAN is an abstraction library modelled after NodeJS client SDK for TheThingsNetwork. It has been adapted to use MQTT over WebSockets for communicating with LoRaWAN networks like TheThingsNetwork.",
+  "icon" :"app-icon.png",
+  "doc-url" :""
+}
