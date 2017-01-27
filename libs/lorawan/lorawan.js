@@ -1,5 +1,25 @@
+    /* 
+    This module exposes the global object TTNClient, which can 
+    be used to connect to TTN servers.
+
+    If not connecting directly to TTN, supply connectOptions in 
+    the constructor, like in this example:
+
+    var client = new TTNClient(
+      'eu', // region not used can be null
+      appId, // App id 
+      appAccessKey, // App access key
+      // Connect options (optional, omit when connecting directly to TTN)
+      {
+        url: 'server-url',
+        port: 8000
+      })
+    */
+
 ;(function (exports) {
   'use strict';
+
+  // Begin EventEmitter code from: https://github.com/Olical/EventEmitter/blob/master/EventEmitter.js
 
   /**
     * Class for managing events.
@@ -454,6 +474,8 @@
       return this._events || (this._events = {});
   };
 
+  // End EventEmitter
+
   // Instead of nodejs util package
   function format(fmtstr) {
     var args = Array.prototype.slice.call(arguments, 1);
@@ -462,13 +484,29 @@
     });
   }
 
+  // Genrerate client id.
+  function generateUUID()
+  {
+    var d = new Date().getTime()
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(
+      /[xy]/g,
+      function(c)
+      {
+        var r = (d + Math.random()*16) % 16 | 0
+        d = Math.floor(d/16)
+        return (c == 'x' ? r : (r&0x3|0x8)).toString(16)
+      })
+  }
+
   // Code lifted from regions.js
-  prefixes = ['eu', 'asia-se', 'brazil', 'us-west']
-  regions = {}
+  // This is used when connecting directly to TTN.
+  var prefixes = ['eu', 'asia-se', 'brazil', 'us-west']
+  var regions = {}
   for (var i = 0; i < prefixes.length; i++) {
       regions[prefixes[i]] = prefixes[i] + '.thethings.network';
   }
-  ttnSuffix = /\.thethings\.network$/;
+  var ttnSuffix = /\.thethings\.network$/;
+
   function validateRegion(region) {
     var reg = region;
     if (regions.hasOwnProperty(region)) {
@@ -481,15 +519,8 @@
     return reg
   };
 
-  function Client(region, appId, appAccessKey) {
-    var reg = validateRegion(region);
-    //this.url = format('mqtt://{0}', reg);
-    this.appId = appId;
-    this.ee = new EventEmitter();
-    //this.mqtt = mqtt.connect(this.url, options);
-    this.mqtt = new Paho.MQTT.Client(reg, 8883, device.uuid);
-    this.mqtt.onConnectionLost = app.onConnectionLost;
-    this.mqtt.onMessageArrived = this._handleMessage.bind(this);
+  // Client object Constructor
+  function Client(region, appId, appAccessKey, connectOptions) {
     var options = {
       userName = appId,
       password = appAccessKey,
@@ -497,8 +528,30 @@
       onSuccess: this._connect.bind(this),
       onFailure: this._error.bind(this)
     }
-    this.mqtt.connect(options);
+
+    // Connect directly to TTN.
+    if (!connectOptions)
+    {
+      var reg = validateRegion(region);
+      this.url = format('mqtt://{0}', reg);
+      this.appId = appId;
+      this.ee = new EventEmitter();
+      this.mqtt = new Paho.MQTT.Client(reg, 8883, generateUUID());
+      this.mqtt = mqtt.connect(this.url, options);
+    }
+    else
+    {
+      this.mqtt = new Paho.MQTT.Client(
+          connectOptions.url, 
+          connectOptions.port, 
+          generateUUID());
+      this.mqtt.connect(options);
+    }
+
+    this.mqtt.onConnectionLost = app.onConnectionLost;
+    this.mqtt.onMessageArrived = this._handleMessage.bind(this);
     
+    // This was used in the node.js implementation.
     //this.mqtt.on('connect', this._connect.bind(this));
     //this.mqtt.on('error', this._error.bind(this));
     //this.mqtt.on('message', this._handleMessage.bind(this));
@@ -613,4 +666,8 @@
     }
     return event;
   }
-}(this || {}));
+
+  // Bind the Client object to the global scope (window).
+  exports.TTNClient = Client
+
+}(this || {})); // 'this' will be window in this case.
