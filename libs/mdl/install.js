@@ -4,9 +4,9 @@
   // 0. Read the index file to manipulate it
   var indexPath = APP_SETTINGS.getIndexFileFullPath(path)
   var html = FILEUTIL.readFileSync(indexPath)
-  var scriptPath = `libs/${lib}/${lib}.js`
-  var cssPath = `libs/${lib}/${lib}.css`
-  var googleFonts = `https://fonts.googleapis.com/icon?family=Material+Icons`
+  var scriptPath = `libs/${lib}/material.js`
+  var cssPath = `libs/${lib}/material.css`
+  var googleFonts = `libs/${lib}/icons/material-icons.css`
 
   // 1. Remove any existing reference in index.html
   cher = CHEERIO.load(html, { xmlMode: false })
