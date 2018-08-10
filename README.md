@@ -16,7 +16,7 @@ Folder structure:
 [Documentation for Evothings JavaScript libraries](https://evothings.com/doc/lib-doc/index.html) is available on the [Evothings documentation web site](https://evothings.com/doc/).
 
 To generate HTML documentation for Evothings JavaScript libraries yourself,
-you can install [JSDoc](https://github.com/jsdoc3/jsdoc) and run the the following command in the root folder of this repository:
+you can install [JSDoc](https://github.com/jsdoc3/jsdoc) and run the following command in the root folder of this repository:
 
     jsdoc -r ./libs/
 
